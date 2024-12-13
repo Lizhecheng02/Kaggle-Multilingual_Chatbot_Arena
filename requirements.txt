@@ -1,0 +1,7 @@
+openai
+pandas
+matplotlib
+datasets
+tqdm
+torch
+transformers
