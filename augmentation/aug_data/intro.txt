@@ -1,1 +1,1 @@
-new data directory
+translated augmentation data directory.
