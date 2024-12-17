@@ -47,7 +47,7 @@ def train(args):
     print(tokenizer.padding_side, tokenizer.pad_token)
 
     def tokenize(sample):
-        return tokenizer(sample["input"], truncation=False)
+        return tokenizer(sample["input"], truncation=True, max_length=MAX_LENGTH)
 
     train_df, test_df = get_train_and_test(ORIGINAL_FILES, EXTRA_FILES)
     train_df, test_df = get_cls_prompt(train_df, test_df)

@@ -10,3 +10,5 @@ bitsandbytes
 sentencepiece
 peft
 scikit-learn
+kaggle
+wandb

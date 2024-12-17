@@ -1,4 +1,4 @@
-from pandas import pd
+import pandas as pd
 from sklearn.model_selection import train_test_split
 from datasets import Dataset
 
@@ -38,6 +38,7 @@ def get_train_and_test(original_train_file_path_list, extra_train_file_path_list
     test_df.reset_index(drop=True, inplace=True)
     print(f"Train Data Size: {len(train_df)}")
     print(f"Test Data Size: {len(test_df)}")
+    return train_df, test_df
 
 
 def get_cls_prompt(train_df, test_df):
