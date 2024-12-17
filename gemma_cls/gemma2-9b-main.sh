@@ -1,0 +1,17 @@
+python gemma2-9b-main.py \
+    --original_files ../original_data/train.parquet \
+    --extra_files ../external_data/lmsys-chatbot-arena-conversations.parquet \
+    --model_name sfairXC/FsfairX-Gemma2-RM-v0.1 \
+    --max_length 2048 \
+    --lora_r 64 \
+    --lora_alpha 16 \
+    --lora_dropout 0.05 \
+    --warmup_ratio 0.1 \
+    --learning_rate 2e-4 \
+    --batch_size 1 \
+    --accumulation_steps 32 \
+    --weight_decay 0.001 \
+    --epochs 2 \
+    --steps 300 \
+    --save_total_limit 10 \
+    --lr_scheduler cosine

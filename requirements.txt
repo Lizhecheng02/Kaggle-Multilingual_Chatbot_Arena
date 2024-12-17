@@ -5,3 +5,8 @@ datasets
 tqdm
 torch
 transformers
+accelerate
+bitsandbytes
+sentencepiece
+peft
+scikit-learn
