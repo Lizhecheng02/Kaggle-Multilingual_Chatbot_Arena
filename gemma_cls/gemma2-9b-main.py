@@ -39,7 +39,7 @@ def train(args):
     LR_SCHEDULER = args.lr_scheduler
 
     wandb.login(key="96a47264bf4a345cddba37487838a3c098362dab")
-    run = wandb.init(project=f"{MODEL_NAME.split('/')[-1]}", job_type="training", anonymous="allow")
+    run = wandb.init(project=f"lmsys2-{MODEL_NAME.split('/')[-1]}", job_type="training", anonymous="allow")
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, token=ACCESS_TOKEN)
     print(tokenizer.padding_side, tokenizer.pad_token)
@@ -119,7 +119,7 @@ def train(args):
         return {"accuracy": score}
 
     training_args = TrainingArguments(
-        output_dir=f"output/{MODEL_NAME.split('/')[-1]}/{wandb.run.name}",
+        output_dir=f"{MODEL_NAME.split('/')[-1]}/{wandb.run.name}",
         bf16=True if torch.cuda.is_bf16_supported() else False,
         fp16=False if torch.cuda.is_bf16_supported() else True,
         learning_rate=LEARNING_RATE,
