@@ -29,6 +29,7 @@ fine_tune_job = client_openai.fine_tuning.jobs.create(
     training_file=train_response.id,
     validation_file=val_response.id,
     model="gpt-4o-mini-2024-07-18",
+    suffix="lmsys2",
     hyperparameters={"n_epochs": 1}
 )
 print(fine_tune_job)

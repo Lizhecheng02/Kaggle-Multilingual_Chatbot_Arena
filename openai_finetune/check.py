@@ -29,7 +29,7 @@ openai_organization = config["openai"]["organization"]
 client_openai = OpenAI(api_key=openai_api_key, organization=openai_organization)
 
 fine_tune_job_id = ""
-status = client_openai.fine_tuning.jobs.retrieve(fine_tune_job_id)
+status = client_openai.fine_tuning.jobs.retrieve(fine_tuning_job_id=fine_tune_job_id)
 print(status)
 
 if status.status == "succeeded":
