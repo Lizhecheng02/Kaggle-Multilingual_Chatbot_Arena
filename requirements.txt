@@ -12,3 +12,4 @@ peft
 scikit-learn
 kaggle
 wandb
+tiktoken
