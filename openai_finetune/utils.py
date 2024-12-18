@@ -48,7 +48,7 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0613"):
 
 
 messages = []
-with open("train.jsonl", "r", encoding="utf-8") as file:
+with open("train_data.jsonl", "r", encoding="utf-8") as file:
     for line in file:
         message = json.loads(line)
         messages.append(message)
@@ -56,7 +56,7 @@ with open("train.jsonl", "r", encoding="utf-8") as file:
 print("The total number of tokens for train jsonl is:", num_tokens_from_messages(messages))
 
 messages = []
-with open("validation.jsonl", "r", encoding="utf-8") as file:
+with open("validation_data.jsonl", "r", encoding="utf-8") as file:
     for line in file:
         message = json.loads(line)
         messages.append(message)
