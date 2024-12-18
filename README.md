@@ -5,7 +5,7 @@
 ##### 1. Install Packages
 
 ```b
-pip install -r requirements.txt
+pip install --upgrade -r requirements.txt
 ```
 
 ##### 2. Create ``config.yaml`` File
@@ -28,6 +28,16 @@ export KAGGLE_KEY="YOUR_KAGGLE_API_KEY"
 ```
 
 ##### 2. Download Datasets
+
+- ``Original Competition Dataset``
+
+```bash
+sudo apt install unzip
+kaggle competitions download -c wsdm-cup-multilingual-chatbot-arena
+unzip wsdm-cup-multilingual-chatbot-arena.zip
+```
+
+- ``Extra Datasets (also include the original competition dataset)``
 
 ```bash
 sudo apt install unzip
