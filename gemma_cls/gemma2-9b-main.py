@@ -57,7 +57,7 @@ def train(args):
     run = wandb.init(project=f"lmsys2-{MODEL_NAME.split('/')[-1]}", job_type="training", anonymous="allow")
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, token=ACCESS_TOKEN)
-    print(tokenizer.padding_side, tokenizer.pad_token)
+    # print(tokenizer.padding_side, tokenizer.pad_token)
     tokenizer.pad_token = tokenizer.eos_token
     print(tokenizer.padding_side, tokenizer.pad_token)
 
@@ -86,7 +86,7 @@ def train(args):
     )
     model.score = nn.Linear(model.config.hidden_size, 2).to(model.device)
     model.config.num_labels = 2
-    print(model.config.pad_token_id)
+    # print(model.config.pad_token_id)
     model.config.pad_token_id = model.config.eos_token_id
     print(model.config.pad_token_id)
 
@@ -124,7 +124,7 @@ def train(args):
                 padding="max_length",
                 max_length=MAX_LENGTH,
                 return_tensors="pt",
-                pad_to_multiple_of=4
+                pad_to_multiple_of=1
             )
             return batch
 
