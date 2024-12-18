@@ -1,6 +1,7 @@
 import wandb
 import os
 import torch
+import torch.nn as nn
 import argparse
 import warnings
 from transformers import (
@@ -16,6 +17,20 @@ from peft import prepare_model_for_kbit_training, LoraConfig, TaskType, get_peft
 warnings.filterwarnings("ignore")
 
 os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
+
+
+class CustomTrainer(Trainer):
+    def __init__(self, *args, label_weights=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label_weights = label_weights
+
+    def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
+        labels = inputs.pop("labels")
+        outputs = model(**inputs)
+        logits = outputs.logits
+        loss_fct = nn.CrossEntropyLoss()
+        loss = loss_fct(logits.view(-1, self.model.config.num_labels), labels.view(-1))
+        return (loss, outputs) if return_outputs else loss
 
 
 def train(args):
@@ -65,11 +80,12 @@ def train(args):
         MODEL_NAME,
         token=ACCESS_TOKEN,
         quantization_config=bnb_config,
-        num_labels=2,
         device_map="auto",
         trust_remote_code=True,
         low_cpu_mem_usage=True
     )
+    model.score = nn.Linear(model.config.hidden_size, 2).to(model.device)
+    model.config.num_labels = 2
     print(model.config.pad_token_id)
     model.config.pad_token_id = model.config.eos_token_id
     print(model.config.pad_token_id)
@@ -146,7 +162,7 @@ def train(args):
         report_to="wandb"
     )
 
-    trainer = Trainer(
+    trainer = CustomTrainer(
         model=lora_model,
         args=training_args,
         train_dataset=ds_train,
