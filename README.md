@@ -49,7 +49,7 @@ unzip kaggle-multilingual-chatbot-arena-datasets.zip
 
 ##### 1. Gemma Classification
 
-- Customize the parameters in ``gemma2-9b-main.sh``.
+- Customize the parameters in ``gemma2-9b-main.sh``
 
 ```bash
 cd gemma_cls
@@ -59,9 +59,9 @@ python gemma2-9b-main.py
 
 #### Fine-tune an OpenAI Model for Pseudo-Labeling
 
-##### 1. Create ``.jsonl`` File.
+##### 1. Create ``.jsonl`` File
 
-- Customize the parameters in ``data.sh``.
+- Customize the parameters in ``data.sh``
 
 ```bash
 cd openai_finetune
@@ -69,7 +69,7 @@ chmod +x ./data.sh
 python data.py
 ```
 
-##### 2. Token Number Calculation
+##### 2. Token Count
 
 ```bash
 python calculate.py
@@ -85,8 +85,8 @@ python finetune.py
 
 ##### 4. Test the Fine-tuned Model
 
-- Set your ``fine_tune_job_id`` in ``test.py``.
-- Write the prompt in ``test.py``.
+- Set your ``fine_tune_job_id`` in ``test.py``
+- Write the prompt in ``test.py``
 
 ```bash
 python test.py
