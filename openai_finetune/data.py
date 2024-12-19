@@ -22,7 +22,48 @@ If you believe Model A's response is better, respond with the letter 'A'. If you
 """
 
 
-def get_train_and_val(original_train_file_path_list, extra_train_file_path_list, train_select_num=1000, val_select_num=100):
+def load_train_and_val(train_file_path_list, val_file_path_list, train_select_num=None, val_select_num=None):
+    train_df = pd.DataFrame()
+    for train_file_path in train_file_path_list:
+        if train_file_path.endswith(".csv"):
+            train_file_df = pd.read_csv(train_file_path)
+            train_df = pd.concat([train_df, train_file_df])
+        elif train_file_path.endswith(".parquet"):
+            train_file_df = pd.read_parquet(train_file_path)
+            train_df = pd.concat([train_df, train_file_df])
+        elif train_file_path.endswith(".json"):
+            train_file_df = pd.read_json(train_file_path)
+            train_df = pd.concat([train_df, train_file_df])
+        else:
+            raise ValueError("Unsupported File Format")
+
+    val_df = pd.DataFrame()
+    for val_file_path in val_file_path_list:
+        if val_file_path.endswith(".csv"):
+            val_file_df = pd.read_csv(val_file_path)
+            val_df = pd.concat([val_df, val_file_df])
+        elif val_file_path.endswith(".parquet"):
+            val_file_df = pd.read_parquet(val_file_path)
+            val_df = pd.concat([val_df, val_file_df])
+        elif val_file_path.endswith(".json"):
+            val_file_df = pd.read_json(val_file_path)
+            val_df = pd.concat([val_df, val_file_df])
+        else:
+            raise ValueError("Unsupported File Format")
+
+    if train_select_num is not None:
+        train_df = train_df.sample(n=train_select_num, random_state=7)
+    if val_select_num is not None:
+        val_df = val_df.sample(n=val_select_num, random_state=7)
+
+    train_df.reset_index(drop=True, inplace=True)
+    val_df.reset_index(drop=True, inplace=True)
+    print(f"Train Data Size: {len(train_df)}")
+    print(f"Val Data Size: {len(val_df)}")
+    return train_df, val_df
+
+
+def get_train_and_val(original_train_file_path_list, extra_train_file_path_list, train_select_num=None, val_select_num=None):
     original_train_df = pd.DataFrame()
     for original_train_file_path in original_train_file_path_list:
         if original_train_file_path.endswith(".csv"):
@@ -77,7 +118,10 @@ def create_dataset(prompt, response):
 
 
 def main(args):
-    train_df, val_df = get_train_and_val(args.original_files, args.extra_files, train_select_num=args.train_select_num, val_select_num=args.val_select_num)
+    if args.direct_load == "y":
+        train_df, val_df = load_train_and_val(args.train_files, args.val_files, train_select_num=args.train_select_num, val_select_num=args.val_select_num)
+    else:
+        train_df, val_df = get_train_and_val(args.original_files, args.extra_files, train_select_num=args.train_select_num, val_select_num=args.val_select_num)
 
     with open("train_data.jsonl", "w") as f:
         for idx, row in tqdm(train_df.iterrows(), total=len(train_df)):
@@ -96,8 +140,11 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create Fine-tuning Data")
-    parser.add_argument("--original_files", nargs="+", type=str)
-    parser.add_argument("--extra_files", nargs="+", type=str)
-    parser.add_argument("--train_select_num", type=int, default=1000)
-    parser.add_argument("--val_select_num", type=int, default=100)
+    parser.add_argument("--original_files", nargs="+", type=str, required=False)
+    parser.add_argument("--extra_files", nargs="+", type=str, required=False)
+    parser.add_argument("--train_files", nargs="+", type=str, required=False)
+    parser.add_argument("--val_files", nargs="+", type=str, required=False)
+    parser.add_argument("--direct_load", type=str, default="y", required=True)
+    parser.add_argument("--train_select_num", type=int, default=1000, required=False)
+    parser.add_argument("--val_select_num", type=int, default=100, required=False)
     main(args=parser.parse_args())
