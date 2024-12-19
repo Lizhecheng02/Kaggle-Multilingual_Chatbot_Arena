@@ -59,7 +59,7 @@ python gemma2-9b-main.py
 
 #### Fine-tune an OpenAI Model for Pseudo-Labeling
 
-##### 1. Create ``.jsonl`` File
+##### 1. Create ``.jsonl`` Files
 
 - Customize the parameters in ``data.sh``.
 
@@ -83,10 +83,19 @@ python finetune.py
 
 (Note: Remember your file and job IDs for later use.)
 
-##### 4. Test the Fine-tuned Model
+##### 4. Test Fine-tuned Model
 
-- Input your ``fine_tune_job_id``  and change the ``prompt`` in ``test.py``.
+- Set the ``fine_tune_job_id``  and change the ``prompt`` in ``test.py``.
 
 ```bash
 python test.py
 ```
+
+##### 5. Compare Original Model vs. Fine-tuned Model
+
+- Set your ``validation file path`` and two different ``model names`` in ``compare.py``.
+
+```bash
+python compare.py
+```
+
