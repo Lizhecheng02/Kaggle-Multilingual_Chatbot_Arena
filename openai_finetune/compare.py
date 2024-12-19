@@ -31,13 +31,16 @@ If you believe Model A's response is better, respond with the letter 'A'. If you
 """
 
 
-def get_response_openai(model_name, system, prompt):
+def get_response_openai(model_name, system, prompt, temperature=0.0, top_p=1.0, max_tokens=1):
     completion = client_openai.chat.completions.create(
         model=model_name,
         messages=[
             {"role": "system", "content": system},
             {"role": "user", "content": prompt}
-        ]
+        ],
+        temperature=temperature,
+        top_p=top_p,
+        max_tokens=max_tokens
     )
     return completion.choices[0].message.content.strip()
 
@@ -57,8 +60,12 @@ def compare(file_path, original_model_id, finetuned_model_id):
 
     for idx, row in tqdm(df.iterrows(), total=len(df)):
         input_prompt = prompt.replace("{{QUESTION}}", row["prompt"]).replace("{{MODELA_ANSWER}}", row["response_a"]).replace("{{MODELB_ANSWER}}", row["response_b"])
-        original_response = get_response_openai(original_model_id, system, input_prompt)
-        finetuned_response = get_response_openai(finetuned_model_id, system, input_prompt)
+        original_response = get_response_openai(original_model_id, system, input_prompt).upper()
+        finetuned_response = get_response_openai(finetuned_model_id, system, input_prompt).upper()
+
+        if original_response not in ["A", "B"] or finetuned_response not in ["A", "B"]:
+            print(f"Invalid Response {idx}: {original_response}, {finetuned_response}")
+
         if row["winner"] == "model_a" and original_response == "A":
             original_correct += 1
         elif row["winner"] == "model_b" and original_response == "B":
