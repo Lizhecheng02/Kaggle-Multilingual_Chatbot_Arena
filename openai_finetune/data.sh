@@ -4,5 +4,3 @@ python data.py \
     --train_files ./train_5000.csv \
     --val_files ./val_500.csv \
     --direct_load y \
-    # --train_select_num 100 \
-    # --val_select_num 10

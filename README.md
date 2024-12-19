@@ -49,7 +49,7 @@ unzip kaggle-multilingual-chatbot-arena-datasets.zip
 
 ##### 1. Gemma Classification
 
-- Customize the parameters in ``gemma2-9b-main.sh``
+- Customize the parameters in ``gemma2-9b-main.sh``.
 
 ```bash
 cd gemma_cls
@@ -61,7 +61,7 @@ python gemma2-9b-main.py
 
 ##### 1. Create ``.jsonl`` File
 
-- Customize the parameters in ``data.sh``
+- Customize the parameters in ``data.sh``.
 
 ```bash
 cd openai_finetune
@@ -81,12 +81,11 @@ python calculate.py
 python finetune.py
 ```
 
-**Remember your file and job IDs for later use.**
+(Note: Remember your file and job IDs for later use.)
 
 ##### 4. Test the Fine-tuned Model
 
-- Set your ``fine_tune_job_id`` in ``test.py``
-- Write the prompt in ``test.py``
+- Input your ``fine_tune_job_id``  and change the ``prompt`` in ``test.py``.
 
 ```bash
 python test.py

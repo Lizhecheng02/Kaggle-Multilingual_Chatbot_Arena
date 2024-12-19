@@ -145,6 +145,6 @@ if __name__ == "__main__":
     parser.add_argument("--train_files", nargs="+", type=str, required=False)
     parser.add_argument("--val_files", nargs="+", type=str, required=False)
     parser.add_argument("--direct_load", type=str, default="y", required=True)
-    parser.add_argument("--train_select_num", type=int, default=1000, required=False)
-    parser.add_argument("--val_select_num", type=int, default=100, required=False)
+    parser.add_argument("--train_select_num", type=int, default=None, required=False)
+    parser.add_argument("--val_select_num", type=int, default=None, required=False)
     main(args=parser.parse_args())
