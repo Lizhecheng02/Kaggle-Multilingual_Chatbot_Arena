@@ -3,6 +3,7 @@ import datasets
 import wandb
 import torch.nn as nn
 import argparse
+import os
 import numpy as np
 from transformers import get_polynomial_decay_schedule_with_warmup
 from transformers import AutoModelForMultipleChoice, TrainingArguments, Trainer
@@ -14,7 +15,9 @@ from transformers import Trainer
 from preprocess import get_train_and_val, load_train_and_val
 from transformers.utils import is_sagemaker_mp_enabled
 from transformers.training_args import OptimizerNames
-from transformers.trainer import smp_forward_backward, is_torch_xpu_available, is_torch_mlu_available, is_torch_musa_available, is_torch_npu_available, is_torch_mps_available, amp
+# from transformers.trainer import smp_forward_backward, is_torch_xpu_available, is_torch_mlu_available, is_torch_musa_available, is_torch_npu_available, is_torch_mps_available, amp
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 class AWP:
@@ -266,11 +269,9 @@ class DataCollatorForMultipleChoice:
 
 
 def compute_metrics(p):
-    predictions = p.predictions.tolist()
-    labels = p.label_ids.tolist()
-    print(predictions)
-    print(labels)
-    accuracy = (predictions == labels).mean()
+    preds = np.argmax(p.predictions, axis=1)
+    labels = p.label_ids
+    accuracy = (preds == labels).mean()
     return {"accuracy": accuracy}
 
 
@@ -310,7 +311,7 @@ def train(args):
         report_to="wandb",
         output_dir=f"{args.MODEL.split('/')[-1]}/{wandb.run.name}",
         overwrite_output_dir=True,
-        fp16=False,
+        fp16=True,
         do_eval=True,
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         logging_steps=args.logging_steps,
@@ -322,6 +323,7 @@ def train(args):
         greater_is_better=True,
         metric_for_best_model="accuracy",
         weight_decay=args.weight_decay,
+        save_only_model=True,
         save_total_limit=10
     )
 
