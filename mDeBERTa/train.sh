@@ -1,5 +1,7 @@
 python train.py \
     --original_files ../original_data/train.parquet \
+    --train_select_num 1000 \
+    --val_select_num 100 \
     --per_device_train_batch_size 2 \
     --per_device_eval_batch_size 4 \
     --learning_rate 4e-6 \

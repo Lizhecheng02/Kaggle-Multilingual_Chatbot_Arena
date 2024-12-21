@@ -1,17 +1,20 @@
 import torch
-import numpy as np
-import pandas as pd
 import datasets
 import wandb
+import torch.nn as nn
 import argparse
+import numpy as np
 from transformers import get_polynomial_decay_schedule_with_warmup
 from transformers import AutoModelForMultipleChoice, TrainingArguments, Trainer
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase, PaddingStrategy
 from transformers import AutoTokenizer, AutoConfig
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Any
 from transformers import Trainer
-from preprocess import get_train_and_test
+from preprocess import get_train_and_val
+from transformers.utils import is_sagemaker_mp_enabled
+from transformers.training_args import OptimizerNames
+from transformers.trainer import smp_forward_backward, is_torch_xpu_available, is_torch_mlu_available, is_torch_musa_available, is_torch_npu_available, is_torch_mps_available, amp
 
 
 class AWP:
@@ -87,7 +90,68 @@ class CustomTrainer(Trainer):
         self.awp_eps = awp_eps
         self.awp_start_epoch = awp_start_epoch
 
-    def training_step(self, model, inputs):
+    # def training_step(self, model, inputs):
+    #     """
+    #     Perform a training step on a batch of inputs.
+
+    #     Subclass and override to inject custom behavior.
+
+    #     Args:
+    #         model (`nn.Module`):
+    #             The model to train.
+    #         inputs (`Dict[str, Union[torch.Tensor, Any]]`):
+    #             The inputs and targets of the model.
+
+    #             The dictionary will be unpacked before being fed to the model. Most models expect the targets under the
+    #             argument `labels`. Check your model's documentation for all accepted arguments.
+
+    #     Return:
+    #         `torch.Tensor`: The tensor with training loss on this batch.
+    #     """
+    #     model.train()
+    #     inputs = self._prepare_inputs(inputs)
+
+    #     with self.compute_loss_context_manager():
+    #         loss = self.compute_loss(model, inputs)
+
+    #     if self.args.n_gpu > 1:
+    #         loss = loss.mean()  # mean() to average on multi-gpu parallel training
+
+    #     if self.do_grad_scaling:
+    #         self.scaler.scale(loss).backward()
+    #     elif self.use_apex:
+    #         with amp.scale_loss(loss, self.optimizer) as scaled_loss:
+    #             scaled_loss.backward()
+    #     else:
+    #         self.accelerator.backward(loss)
+
+    #     ########################
+    #     # AWP
+    #     if self.awp_lr != 0 and self.state.epoch >= self.awp_start_epoch:
+    #         self.awp = AWP(model, adv_lr=self.awp_lr, adv_eps=self.awp_eps)
+    #         self.awp._save()
+    #         self.awp._attack_step()
+    #         with self.compute_loss_context_manager():
+    #             awp_loss = self.compute_loss(self.awp.model, inputs)
+
+    #         if self.args.n_gpu > 1:
+    #             awp_loss = awp_loss.mean()  # mean() to average on multi-gpu parallel training
+
+    #         if self.do_grad_scaling:
+    #             self.scaler.scale(awp_loss).backward()
+    #         elif self.use_apex:
+    #             with amp.scale_loss(awp_loss, self.optimizer) as awp_scaled_loss:
+    #                 awp_scaled_loss.backward()
+    #         else:
+    #             self.accelerator.backward(awp_loss)
+    #         self.awp._restore()
+    #     ########################
+
+    #     return loss.detach() / self.args.gradient_accumulation_steps
+
+    def training_step(
+        self, model: nn.Module, inputs: Dict[str, Union[torch.Tensor, Any]], num_items_in_batch=None
+    ) -> torch.Tensor:
         """
         Perform a training step on a batch of inputs.
 
@@ -106,24 +170,54 @@ class CustomTrainer(Trainer):
             `torch.Tensor`: The tensor with training loss on this batch.
         """
         model.train()
+        if hasattr(self.optimizer, "train") and callable(self.optimizer.train):
+            self.optimizer.train()
+
         inputs = self._prepare_inputs(inputs)
+        if is_sagemaker_mp_enabled():
+            loss_mb = smp_forward_backward(model, inputs, self.args.gradient_accumulation_steps)
+            return loss_mb.reduce_mean().detach().to(self.args.device)
 
         with self.compute_loss_context_manager():
-            loss = self.compute_loss(model, inputs)
+            loss = self.compute_loss(model, inputs, num_items_in_batch=num_items_in_batch)
+
+        del inputs
+        if (
+            self.args.torch_empty_cache_steps is not None
+            and self.state.global_step % self.args.torch_empty_cache_steps == 0
+        ):
+            if is_torch_xpu_available():
+                torch.xpu.empty_cache()
+            elif is_torch_mlu_available():
+                torch.mlu.empty_cache()
+            elif is_torch_musa_available():
+                torch.musa.empty_cache()
+            elif is_torch_npu_available():
+                torch.npu.empty_cache()
+            elif is_torch_mps_available(min_version="2.0"):
+                torch.mps.empty_cache()
+            else:
+                torch.cuda.empty_cache()
+
+        kwargs = {}
+
+        # For LOMO optimizers you need to explicitly use the learnign rate
+        if self.args.optim in [OptimizerNames.LOMO, OptimizerNames.ADALOMO]:
+            kwargs["learning_rate"] = self._get_learning_rate()
 
         if self.args.n_gpu > 1:
             loss = loss.mean()  # mean() to average on multi-gpu parallel training
 
-        if self.do_grad_scaling:
-            self.scaler.scale(loss).backward()
-        elif self.use_apex:
+        if self.use_apex:
             with amp.scale_loss(loss, self.optimizer) as scaled_loss:
                 scaled_loss.backward()
         else:
-            self.accelerator.backward(loss)
+            self.accelerator.backward(loss, **kwargs)
+            # Finally we need to normalize the loss for reporting
+            # if num_items_in_batch is None:
+            #     return loss.detach() / self.args.gradient_accumulation_steps
+            # return loss.detach()
 
-        ########################
-        # AWP
         if self.awp_lr != 0 and self.state.epoch >= self.awp_start_epoch:
             self.awp = AWP(model, adv_lr=self.awp_lr, adv_eps=self.awp_eps)
             self.awp._save()
@@ -134,15 +228,12 @@ class CustomTrainer(Trainer):
             if self.args.n_gpu > 1:
                 awp_loss = awp_loss.mean()  # mean() to average on multi-gpu parallel training
 
-            if self.do_grad_scaling:
-                self.scaler.scale(awp_loss).backward()
-            elif self.use_apex:
+            if self.use_apex:
                 with amp.scale_loss(awp_loss, self.optimizer) as awp_scaled_loss:
                     awp_scaled_loss.backward()
             else:
-                self.accelerator.backward(awp_loss)
-            self.awp._restore()
-        ########################
+                self.accelerator.backward(awp_loss, **kwargs)
+                self.awp._restore()
 
         return loss.detach() / self.args.gradient_accumulation_steps
 
@@ -187,14 +278,14 @@ def train(args):
     wandb.login(key="96a47264bf4a345cddba37487838a3c098362dab")
     run = wandb.init(project=f"lmsys2-{args.MODEL.split('/')[-1]}", job_type="training", anonymous="allow")
 
-    df_train, df_valid = get_train_and_test(args.original_files, args.extra_files)
+    df_train, df_valid = get_train_and_val(args.original_files, args.extra_files, train_select_num=args.train_select_num, val_select_num=args.val_select_num)
     tokenizer = AutoTokenizer.from_pretrained(args.MODEL)
     winner_to_label = {"model_a": 0, "model_b": 1}
 
     def preprocess(example):
         first_sentence = ["[CLS]" + example["prompt"]] * 2
         second_sentences = ["[SEP]" + example[f"response_{option}"] + "[SEP]" for option in "ab"]
-        tokenized_example = tokenizer(first_sentence, second_sentences, truncation="only_first", max_length=args.MAX_INPUT, add_special_tokens=False)
+        tokenized_example = tokenizer(first_sentence, second_sentences, truncation=True, max_length=args.MAX_INPUT, add_special_tokens=False)
         tokenized_example["label"] = winner_to_label[example["winner"]]
         return tokenized_example
 
@@ -220,7 +311,7 @@ def train(args):
         do_eval=True,
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         logging_steps=args.logging_steps,
-        evaluation_strategy="steps",
+        eval_strategy="steps",
         eval_steps=args.eval_steps,
         save_strategy="steps",
         save_steps=args.save_steps,
@@ -263,6 +354,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="AutoModelForMultipleChoice")
     parser.add_argument("--original_files", nargs="+", type=str, required=True)
     parser.add_argument("--extra_files", nargs="+", type=str, required=False)
+    parser.add_argument("--train_file_path_list", nargs="+", type=str, required=False)
+    parser.add_argument("--val_file_path_list", nargs="+", type=str, required=False)
+    parser.add_argument("--train_select_num", type=int, default=None, required=False)
+    parser.add_argument("--val_select_num", type=int, default=None, required=False)
     parser.add_argument("--per_device_train_batch_size", default=2, type=int)
     parser.add_argument("--per_device_eval_batch_size", default=2, type=int)
     parser.add_argument("--learning_rate", default=4e-6, type=float)
