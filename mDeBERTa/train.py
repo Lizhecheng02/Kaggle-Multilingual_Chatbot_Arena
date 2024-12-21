@@ -11,7 +11,7 @@ from transformers import AutoTokenizer, AutoConfig
 from dataclasses import dataclass
 from typing import Optional, Union, Dict, Any
 from transformers import Trainer
-from preprocess import get_train_and_val
+from preprocess import get_train_and_val, load_train_and_val
 from transformers.utils import is_sagemaker_mp_enabled
 from transformers.training_args import OptimizerNames
 from transformers.trainer import smp_forward_backward, is_torch_xpu_available, is_torch_mlu_available, is_torch_musa_available, is_torch_npu_available, is_torch_mps_available, amp
@@ -278,7 +278,10 @@ def train(args):
     wandb.login(key="96a47264bf4a345cddba37487838a3c098362dab")
     run = wandb.init(project=f"lmsys2-{args.MODEL.split('/')[-1]}", job_type="training", anonymous="allow")
 
-    df_train, df_valid = get_train_and_val(args.original_files, args.extra_files, train_select_num=args.train_select_num, val_select_num=args.val_select_num)
+    if args.load != "y":
+        df_train, df_valid = get_train_and_val(args.original_files, args.extra_files, train_select_num=args.train_select_num, val_select_num=args.val_select_num)
+    else:
+        df_train, df_valid = load_train_and_val(args.train_file_path_list, args.val_file_path_list, train_select_num=args.train_select_num, val_select_num=args.val_select_num)
     tokenizer = AutoTokenizer.from_pretrained(args.MODEL)
     winner_to_label = {"model_a": 0, "model_b": 1}
 
@@ -352,10 +355,11 @@ def train(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="AutoModelForMultipleChoice")
-    parser.add_argument("--original_files", nargs="+", type=str, required=True)
+    parser.add_argument("--original_files", nargs="+", type=str, required=False)
     parser.add_argument("--extra_files", nargs="+", type=str, required=False)
     parser.add_argument("--train_file_path_list", nargs="+", type=str, required=False)
     parser.add_argument("--val_file_path_list", nargs="+", type=str, required=False)
+    parser.add_argument("--load", type=str, default="y", required=True)
     parser.add_argument("--train_select_num", type=int, default=None, required=False)
     parser.add_argument("--val_select_num", type=int, default=None, required=False)
     parser.add_argument("--per_device_train_batch_size", default=2, type=int)

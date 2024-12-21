@@ -1,21 +1,24 @@
 python train.py \
     --original_files ../original_data/train.parquet \
+    --train_file_path_list train_data.json \
+    --val_file_path_list dev_data.json \
+    --load y \
     --train_select_num 1000 \
     --val_select_num 100 \
     --per_device_train_batch_size 2 \
-    --per_device_eval_batch_size 4 \
-    --learning_rate 4e-6 \
-    --lr_end 8e-7 \
+    --per_device_eval_batch_size 2 \
+    --learning_rate 5e-6 \
+    --lr_end 1e-6 \
     --warmup_ratio 0.1 \
     --num_train_epochs 3 \
-    --gradient_accumulation_steps 8 \
+    --gradient_accumulation_steps 16 \
     --logging_steps 300 \
     --eval_steps 300 \
     --save_steps 300 \
     --weight_decay 1e-4 \
     --MAX_INPUT 2048 \
     --MODEL microsoft/mdeberta-v3-base \
-    --dropout_rate 0 \
+    --dropout_rate 0.0 \
     --awp_lr 0.1 \
     --awp_eps 1e-4 \
     --awp_start_epoch 1.5
