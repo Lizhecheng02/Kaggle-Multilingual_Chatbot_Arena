@@ -54,8 +54,22 @@ unzip kaggle-multilingual-chatbot-arena-datasets.zip
 ```bash
 cd gemma_cls
 chmod +x ./gemma2-9b-main.sh
-python gemma2-9b-main.py
+./gemma2-9b-main.sh
 ```
+
+#### AutoModelForMultipleChoice
+
+##### 1. mdeberta-v3-base (with AWP)
+
+- Customize the parameters in ``train.sh``.
+
+```bash
+cd mDeBERTa
+chmod +x ./train.sh
+./train.sh
+```
+
+(Note: The performance of ``microsoft/mdeberta-v3-base`` is suboptimal, with a cv score of approximately ``0.645``.)
 
 #### Fine-tune an OpenAI Model for Pseudo-Labeling
 
