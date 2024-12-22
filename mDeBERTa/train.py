@@ -152,9 +152,7 @@ class CustomTrainer(Trainer):
 
     #     return loss.detach() / self.args.gradient_accumulation_steps
 
-    def training_step(
-        self, model: nn.Module, inputs: Dict[str, Union[torch.Tensor, Any]], num_items_in_batch=None
-    ) -> torch.Tensor:
+    def training_step(self, model: nn.Module, inputs: Dict[str, Union[torch.Tensor, Any]], num_items_in_batch=None) -> torch.Tensor:
         """
         Perform a training step on a batch of inputs.
 
@@ -185,10 +183,7 @@ class CustomTrainer(Trainer):
             loss = self.compute_loss(model, inputs, num_items_in_batch=num_items_in_batch)
 
         del inputs
-        if (
-            self.args.torch_empty_cache_steps is not None
-            and self.state.global_step % self.args.torch_empty_cache_steps == 0
-        ):
+        if (self.args.torch_empty_cache_steps is not None and self.state.global_step % self.args.torch_empty_cache_steps == 0):
             if is_torch_xpu_available():
                 torch.xpu.empty_cache()
             elif is_torch_mlu_available():
