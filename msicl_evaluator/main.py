@@ -26,4 +26,4 @@ def main(model, msicl_nums, file_path, sample_size):
 
 
 if __name__ == "__main__":
-    main(model="gpt-4o-mini", msicl_nums=[2, 4], file_path="../original_data/train.parquet", sample_size=300)
+    main(model="gpt-4o-mini", msicl_nums=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], file_path="../original_data/train.parquet", sample_size=600)
