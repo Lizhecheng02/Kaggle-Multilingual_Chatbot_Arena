@@ -58,7 +58,6 @@ def process_row(prompt, response_a, response_b, total_threshold):
 
     if (response_a_tokens + response_b_tokens) > 3 * prompt_tokens:
         max_response_tokens = total_threshold - prompt_tokens
-
         new_response_a, new_response_b = truncate_by_ratio(response_a, response_b, max_response_tokens, tokenizer)
         return prompt, new_response_a, new_response_b
 
