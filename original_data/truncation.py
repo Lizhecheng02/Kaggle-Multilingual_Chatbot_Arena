@@ -50,25 +50,24 @@ def process_row(prompt, response_a, response_b, total_threshold):
 
     total_tokens = prompt_tokens + response_a_tokens + response_b_tokens
 
+    # 如果总长度本来就小于限制，那么保留所有的即可
     if total_tokens <= total_threshold:
         return prompt, response_a, response_b
 
-    if prompt_tokens > total_threshold // 3:
-        return prompt, response_a, response_b
+    # 如果prompt的长度已经超过限制的四分之一，那么尾部截断prompt到总长的四分之一，剩下按比例截断response
+    if prompt_tokens > total_threshold // 4:
+        new_prompt = truncate_from_tail(prompt, total_threshold // 4, tokenizer)
+        new_response_a, new_response_b = truncate_by_ratio(response_a, response_b, total_threshold - total_threshold // 4, tokenizer)
+        return new_prompt, new_response_a, new_response_b
 
-    if (response_a_tokens + response_b_tokens) > 3 * prompt_tokens:
-        max_response_tokens = total_threshold - prompt_tokens
-        new_response_a, new_response_b = truncate_by_ratio(response_a, response_b, max_response_tokens, tokenizer)
+    # 如果response的长度总和超过了5倍的prompt长度，那么保留完整的prompt，剩下的总长度按比例截断response进行分配
+    if (response_a_tokens + response_b_tokens) > 5 * prompt_tokens:
+        new_response_a, new_response_b = truncate_by_ratio(response_a, response_b, total_threshold - prompt_tokens, tokenizer)
         return prompt, new_response_a, new_response_b
 
-    if (response_a_tokens + response_b_tokens) < total_threshold:
-        max_prompt_tokens = total_threshold - response_a_tokens - response_b_tokens
-        new_prompt = truncate_from_tail(prompt, max_prompt_tokens, tokenizer)
-        return new_prompt, response_a, response_b
-
     else:
-        new_prompt = truncate_from_tail(prompt, total_threshold // 6, tokenizer)
-        new_response_a, new_response_b = truncate_by_ratio(response_a, response_b, total_threshold - total_threshold // 6, tokenizer)
+        new_prompt = truncate_from_tail(prompt, total_threshold // 5, tokenizer)
+        new_response_a, new_response_b = truncate_by_ratio(response_a, response_b, total_threshold - total_threshold // 5, tokenizer)
         return new_prompt, new_response_a, new_response_b
 
 
@@ -76,7 +75,7 @@ def truncate_dataframe(df):
     if not {"prompt", "response_a", "response_b"}.issubset(df.columns):
         raise ValueError("DataFrame must have columns 'prompt', 'response_a', 'response_b'")
 
-    new_data = df.apply(lambda row: process_row(row["prompt"], row["response_a"], row["response_b"], 1920), axis=1, result_type="expand")
+    new_data = df.apply(lambda row: process_row(row["prompt"], row["response_a"], row["response_b"], 1900), axis=1, result_type="expand")
     df[["prompt", "response_a", "response_b"]] = new_data
 
     return df
