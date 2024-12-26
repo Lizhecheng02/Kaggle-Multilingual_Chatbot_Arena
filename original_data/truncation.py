@@ -57,13 +57,11 @@ def process_row1(prompt, response_a, response_b, total_threshold):
         return prompt, response_a, response_b
 
     if (response_a_tokens + response_b_tokens) > 3 * prompt_tokens:
-        max_response_tokens = total_threshold - prompt_tokens
-        new_response_a, new_response_b = truncate_by_ratio(response_a, response_b, max_response_tokens, tokenizer)
+        new_response_a, new_response_b = truncate_by_ratio(response_a, response_b, total_threshold - prompt_tokens, tokenizer)
         return prompt, new_response_a, new_response_b
 
     if (response_a_tokens + response_b_tokens) < total_threshold:
-        max_prompt_tokens = total_threshold - response_a_tokens - response_b_tokens
-        new_prompt = truncate_from_tail(prompt, max_prompt_tokens, tokenizer)
+        new_prompt = truncate_from_tail(prompt, total_threshold - response_a_tokens - response_b_tokens, tokenizer)
         return new_prompt, response_a, response_b
 
     else:
