@@ -50,8 +50,8 @@ def sample_validation_dataset(file_path, sample_size):
     return sample_validation_df, remain_df
 
 
-def construct_prompt(df, msicl_num):
-    prompt = "You are tasked with evaluating and comparing answers from two large language models from a human's perspective to determine which one provides the better response. You will be given examples judged by humans, and you should learn from these examples to understand human preferences and finally make your own judgment. "
+def construct_few_shot_prompt(df, msicl_num):
+    prompt = "You are a multilingual expert tasked with evaluating and comparing answers from two large language models from a human's perspective to determine which one provides the better response. You will be given examples judged by humans, and you should learn from these examples to understand human preferences and finally make your own judgment. "
     prompt += f"Here are {msicl_num} examples for you to learn from:\n"
     for i in range(msicl_num):
         if i != msicl_num - 1:
@@ -68,5 +68,4 @@ def construct_prompt(df, msicl_num):
             prompt += f"<Response B>\n{df['response_b'][i]}\n</Response B>\n"
             prompt += f"<Judgment>\n{df['winner'][i]}\n</Judgment>\n"
             prompt += f"</Example {i+1}>\n"
-    prompt += "Now you need to evaluate the following question and responses based on the examples provided. Determine which response is better from a human perspective and return either 'model_a' or 'model_b' only. DO NOT include explanations.\n"
     return prompt
