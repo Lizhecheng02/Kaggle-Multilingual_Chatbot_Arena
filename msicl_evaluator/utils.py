@@ -16,17 +16,29 @@ client_openai = OpenAI(api_key=openai_api_key, organization=openai_organization)
 
 
 def get_response_openai_prompt(model, prompt, temperature=0.0, top_p=0.95, max_tokens=8):
-    completion = client_openai.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "user", "content": prompt}
-        ],
-        temperature=temperature,
-        top_p=top_p,
-        max_tokens=max_tokens
-    )
-    response = completion.choices[0].message.content.strip()
-    return response
+    if "gpt" in model:
+        completion = client_openai.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            temperature=temperature,
+            top_p=top_p,
+            max_completion_tokens=max_tokens
+        )
+        response = completion.choices[0].message.content.strip()
+        return response
+    else:
+        completion = client_openai.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            temperature=temperature,
+            max_completion_tokens=max_tokens
+        )
+        response = completion.choices[0].message.content.strip()
+        return response
 
 
 def sample_validation_dataset(file_path, sample_size):
@@ -51,8 +63,7 @@ def sample_validation_dataset(file_path, sample_size):
 
 
 def construct_few_shot_prompt(df, msicl_num):
-    prompt = "You are a multilingual expert tasked with evaluating and comparing answers from two large language models from a human's perspective to determine which one provides the better response. You will be given examples judged by humans, and you should learn from these examples to understand human preferences and finally make your own judgment. "
-    prompt += f"Here are {msicl_num} examples for you to learn from:\n"
+    prompt = f"You are a multilingual expert tasked with evaluating and comparing answers from two large language models from a human's perspective to determine which one provides the better response. You will be given examples judged by humans, and you should learn from these examples to understand human preferences and finally make your own judgment. Here are {msicl_num} examples for you to learn from:\n"
     for i in range(msicl_num):
         if i != msicl_num - 1:
             prompt += f"<Example {i+1}>\n"

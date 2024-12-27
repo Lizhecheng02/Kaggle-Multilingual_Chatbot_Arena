@@ -23,7 +23,7 @@ def few_shot_direct_output(model, msicl_nums, file_path, sample_size):
             elif response != "model_a" and response != "model_b":
                 print(f"Error: {response} Row: {idx + 1}")
                 final_sample_size -= 1
-        print(f"MSICL With {msicl_num} Examples Accuracy: {acc_count / final_sample_size * 100: .2f}%")
+        print(f"MSICL With {msicl_num} Examples Direct Output Accuracy: {acc_count / final_sample_size * 100: .2f}%")
 
 
 def zero_shot_direct_output(model, file_path, sample_size):
@@ -36,7 +36,11 @@ def zero_shot_direct_output(model, file_path, sample_size):
         prompt += f"<Response A>\n{row['response_a']}\n</Response A>\n"
         prompt += f"<Response B>\n{row['response_b']}\n</Response B>\n"
         prompt += "If you think Response A is better, return 'model_a'; Otherwise, return 'model_b'. You should only return either 'model_a' or 'model_b' without any extra explanations."
-        response = get_response_openai_prompt(model, prompt)
+        if "gpt" in model:
+            response = get_response_openai_prompt(model, prompt, temperature=0.0)
+        else:
+            response = get_response_openai_prompt(model, prompt, temperature=1.0, max_tokens=2048)
+            # print(response)
         if response == "model_a" and row["winner"] == "model_a":
             acc_count += 1
         elif response == "model_b" and row["winner"] == "model_b":
@@ -72,7 +76,7 @@ def few_shot_reasoning_output(model, msicl_nums, file_path, sample_size):
             except:
                 print(f"Error: {response} Row: {idx + 1}")
                 final_sample_size -= 1
-        print(f"MSICL With {msicl_num} Examples Accuracy: {acc_count / final_sample_size * 100: .2f}%")
+        print(f"MSICL With {msicl_num} Examples Reasoning Output Accuracy: {acc_count / final_sample_size * 100: .2f}%")
 
 
 def zero_shot_reasoning_output(model, file_path, sample_size):
@@ -85,7 +89,11 @@ def zero_shot_reasoning_output(model, file_path, sample_size):
         prompt += f"<Response A>\n{row['response_a']}\n</Response A>\n"
         prompt += f"<Response B>\n{row['response_b']}\n</Response B>\n"
         prompt += "You should think carefully according to the example(s) shown above. Please provide a detailed explanation (at most 400 tokens) within <analysis> tags and give your final choice either 'model_a' or 'model_b' within <answer> tags."
-        response = get_response_openai_prompt(model, prompt)
+        if "gpt" in model:
+            response = get_response_openai_prompt(model, prompt, temperature=0.0, max_tokens=512)
+        else:
+            response = get_response_openai_prompt(model, prompt, temperature=1.0, max_tokens=2048)
+            # print(response)
         try:
             response = re.search(r"<answer>(.*?)</answer>", response, re.DOTALL).group(1).strip()
             if response == "model_a" and row["winner"] == "model_a":
@@ -102,7 +110,7 @@ def zero_shot_reasoning_output(model, file_path, sample_size):
 
 
 if __name__ == "__main__":
-    few_shot_direct_output(model="gpt-4o-mini", msicl_nums=[1, 2, 3, 4], file_path="../original_data/train.parquet", sample_size=500)
-    few_shot_reasoning_output(model="gpt-4o-mini", msicl_nums=[1, 2, 3, 4], file_path="../original_data/train.parquet", sample_size=500)
-    zero_shot_direct_output(model="gpt-4o-mini", file_path="../original_data/train.parquet", sample_size=500)
-    zero_shot_reasoning_output(model="gpt-4o-mini", file_path="../original_data/train.parquet", sample_size=500)
+    # few_shot_direct_output(model="gpt-4o-mini", msicl_nums=[1, 2, 3, 4], file_path="../original_data/train.parquet", sample_size=500)
+    # few_shot_reasoning_output(model="gpt-4o-mini", msicl_nums=[1, 2, 3, 4], file_path="../original_data/train.parquet", sample_size=500)
+    zero_shot_direct_output(model="o1-mini", file_path="../original_data/train.parquet", sample_size=500)
+    # zero_shot_reasoning_output(model="o1-mini", file_path="../original_data/train.parquet", sample_size=500)
