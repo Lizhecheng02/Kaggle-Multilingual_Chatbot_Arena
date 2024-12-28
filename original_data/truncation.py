@@ -98,6 +98,39 @@ def process_row2(prompt, response_a, response_b, total_threshold):
         return new_prompt, new_response_a, new_response_b
 
 
+def process_row3(prompt, response_a, response_b, total_threshold):
+    prompt_tokens = count_tokens_gemma(prompt, tokenizer)
+    response_a_tokens = count_tokens_gemma(response_a, tokenizer)
+    response_b_tokens = count_tokens_gemma(response_b, tokenizer)
+
+    total_tokens = prompt_tokens + response_a_tokens + response_b_tokens
+
+    if total_tokens <= total_threshold:
+        return prompt, response_a, response_b
+
+    if prompt_tokens > total_threshold // 4:
+        if (response_a_tokens + response_b_tokens) < total_threshold:
+            new_prompt = truncate_from_tail(prompt, total_threshold - response_a_tokens - response_b_tokens, tokenizer)
+            return new_prompt, response_a, response_b
+        else:
+            new_prompt = truncate_from_tail(prompt, total_threshold // 6, tokenizer)
+            new_response_a, new_response_b = truncate_by_ratio(response_a, response_b, total_threshold - total_threshold // 6, tokenizer)
+            return new_prompt, new_response_a, new_response_b
+
+    if (response_a_tokens + response_b_tokens) > 4 * prompt_tokens:
+        new_response_a, new_response_b = truncate_by_ratio(response_a, response_b, total_threshold - prompt_tokens, tokenizer)
+        return prompt, new_response_a, new_response_b
+
+    if (response_a_tokens + response_b_tokens) < total_threshold:
+        new_prompt = truncate_from_tail(prompt, total_threshold - response_a_tokens - response_b_tokens, tokenizer)
+        return new_prompt, response_a, response_b
+
+    else:
+        new_prompt = truncate_from_tail(prompt, total_threshold // 6, tokenizer)
+        new_response_a, new_response_b = truncate_by_ratio(response_a, response_b, total_threshold - total_threshold // 6, tokenizer)
+        return new_prompt, new_response_a, new_response_b
+
+
 def truncate_dataframe(df):
     if not {"prompt", "response_a", "response_b"}.issubset(df.columns):
         raise ValueError("DataFrame must have columns 'prompt', 'response_a', 'response_b'")
