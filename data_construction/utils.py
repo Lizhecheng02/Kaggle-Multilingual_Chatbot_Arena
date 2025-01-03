@@ -15,11 +15,12 @@ openai_organization = config["openai"]["organization"]
 client_openai = OpenAI(api_key=openai_api_key, organization=openai_organization)
 
 
-def get_response_openai_prompt(model, prompt, temperature=0.0, top_p=0.95, max_tokens=8):
+def get_response_openai_prompt(model, system, prompt, temperature=0.3, top_p=0.95, max_tokens=256):
     if "gpt" in model:
         completion = client_openai.chat.completions.create(
             model=model,
             messages=[
+                {"role": "system", "content": system},
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature,
@@ -32,6 +33,7 @@ def get_response_openai_prompt(model, prompt, temperature=0.0, top_p=0.95, max_t
         completion = client_openai.chat.completions.create(
             model=model,
             messages=[
+                {"role": "system", "content": system},
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature,
