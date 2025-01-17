@@ -15,7 +15,7 @@ with open(config_path, "r") as file:
 
 hf_token = config["huggingface"]["token"]
 
-API_URL = "https://api-inference.huggingface.co/models/google/gemma-2-9b-it"
+API_URL = "https://api-inference.huggingface.co/models/microsoft/Phi-3.5-mini-instruct"
 headers = {"Authorization": f"Bearer {hf_token}"}
 payload = {
     "inputs": "Today is a great day."
