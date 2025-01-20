@@ -1,0 +1,1 @@
+python train_gemma_cls.py --config ./train_gemma_cls.yaml
