@@ -192,7 +192,7 @@ class TrainInstructionDataSet(Dataset):
         tokens = tokenizer.encode(text)
         if len(tokens) <= max_tokens:
             return text
-        truncated_tokens = tokens[:max_tokens // 2] + tokenizer.encode("...<unused1>...") + tokens[-max_tokens // 2:]
+        truncated_tokens = tokens[:max_tokens // 2] + tokenizer.encode(" ...<unused1>... ") + tokens[-max_tokens // 2:]
         return tokenizer.decode(truncated_tokens)
 
     def truncate_by_ratio(self, response_a, response_b, max_total_tokens, tokenizer):
@@ -339,7 +339,7 @@ class ValidInstructionDataSet(Dataset):
         tokens = tokenizer.encode(text)
         if len(tokens) <= max_tokens:
             return text
-        truncated_tokens = tokens[:max_tokens // 2] + tokenizer.encode("...<unused1>...") + tokens[-max_tokens // 2:]
+        truncated_tokens = tokens[:max_tokens // 2] + tokenizer.encode(" ...<unused1>... ") + tokens[-max_tokens // 2:]
         return tokenizer.decode(truncated_tokens)
 
     def truncate_by_ratio(self, response_a, response_b, max_total_tokens, tokenizer):
