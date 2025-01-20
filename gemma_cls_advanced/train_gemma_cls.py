@@ -1,4 +1,3 @@
-from typing import Any, Dict, List, Optional, Union
 from typing import Optional, Union
 from transformers import Trainer
 from time import gmtime, strftime
@@ -19,7 +18,6 @@ from transformers import (
 )
 from datasets import Dataset
 from dataclasses import dataclass
-from torch.utils.data import Dataset
 import torch.nn as nn
 import torch
 import numpy as np
@@ -138,6 +136,7 @@ def seed_everything(seed=None):
 seed_everything(42)
 
 
+from torch.utils.data import Dataset
 class TrainInstructionDataSet(Dataset):
     def __init__(self, data, tokenizer, max_source_length, truncation_type="lzc"):
         super(TrainInstructionDataSet, self).__init__()
