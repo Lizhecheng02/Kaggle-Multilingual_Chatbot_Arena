@@ -1,3 +1,4 @@
+from torch.utils.data import Dataset
 from typing import Optional, Union
 from transformers import Trainer
 from time import gmtime, strftime
@@ -16,7 +17,6 @@ from transformers import (
     Gemma2ForSequenceClassification,
     BitsAndBytesConfig
 )
-from datasets import Dataset
 from dataclasses import dataclass
 import torch.nn as nn
 import torch
@@ -136,7 +136,6 @@ def seed_everything(seed=None):
 seed_everything(42)
 
 
-from torch.utils.data import Dataset
 class TrainInstructionDataSet(Dataset):
     def __init__(self, data, tokenizer, max_source_length, truncation_type="lzc"):
         super(TrainInstructionDataSet, self).__init__()
@@ -268,7 +267,7 @@ class TrainInstructionDataSet(Dataset):
             input_ids = prompt_input_ids
 
         else:
-            raise ValueError("Invalid Truncation Type")
+            messages = [{"role": "user", "content": self.sys_prompt + "\n" + self.usr_prompt.format(p_t, r_a, r_b)}]
 
         if self.vis:
             print("=" * 20 + "Train" + "=" * 20)
@@ -415,7 +414,7 @@ class ValidInstructionDataSet(Dataset):
             input_ids = prompt_input_ids
 
         else:
-            raise ValueError("Invalid Truncation Type")
+            messages = [{"role": "user", "content": self.sys_prompt + "\n" + self.usr_prompt.format(p_t, r_a, r_b)}]
 
         if self.vis:
             print("=" * 20 + "Valid" + "=" * 20)
