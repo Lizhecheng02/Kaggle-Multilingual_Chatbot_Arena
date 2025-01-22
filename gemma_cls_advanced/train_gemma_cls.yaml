@@ -3,8 +3,8 @@ valid_data: './dev_data_sort.parquet'
 resume_from_checkpoint: './all_similar_distribution_150k_for_pl_drop_dup_lmsys_pl_filter_v4_long_first_base_on_gen_model_cv_695_lb_695_drop_dup_long_first/checkpoint-16000'
 per_device_train_batch_size: 2
 per_device_eval_batch_size: 8
-learning_rate: 6.e-5
-lr_end: 1.e-9
+learning_rate: 5.e-5
+lr_end: 1.e-7
 warmup_ratio: 0.1
 num_train_epochs: 1
 gradient_accumulation_steps: 8
