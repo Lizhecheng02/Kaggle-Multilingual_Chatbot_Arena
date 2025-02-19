@@ -57,6 +57,14 @@ chmod +x ./gemma2-9b-main.sh
 ./gemma2-9b-main.sh
 ```
 
+- Use advanced training code based on LMSYS 1.0 & customize the parameters in ``train_gemma_cls.yaml``.
+
+```bash
+cd gemma_cls_advanced
+chmod +x ./gemma_cls.sh
+./gemma_cls.sh
+```
+
 #### AutoModelForMultipleChoice
 
 ##### 1. mdeberta-v3-base (with AWP)
