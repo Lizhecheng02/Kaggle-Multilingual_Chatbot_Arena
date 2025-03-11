@@ -123,7 +123,7 @@ python compare.py
 
 ---
 
-## 6th Place Solution of [Kaggle - WSDM Cup - Multilingual Chatbot Arena](https://www.kaggle.com/competitions/wsdm-cup-multilingual-chatbot-arena)
+## [6th Place Solution -> WSDM Cup - Multilingual Chatbot Arena](https://www.kaggle.com/competitions/wsdm-cup-multilingual-chatbot-arena/discussion/567600)
 
 First, I sincerely want to thank Kaggle and the Chatbot Arena for organizing this meaningful competition. I also want to extend my deepest gratitude to my teammates: @pingfan, @xuanmingzhang777, @xiaoqinglong1996, @tonyarobertson, with whom I've competed on Kaggle for almost a year. Unfortunately, we faced unexpected situations in previous competitions, leading to shake down or missing gold medals. However, today five Kaggle competition experts have become competition masters together. This is truly one of the most incredible moments of our journey, being able to share this success with my teammates!
 
